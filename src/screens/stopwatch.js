@@ -22,6 +22,41 @@ const StopwatchScreen = () => {
   const [newCategoryName, setNewCategoryName] = useState('');
 const [newCategoryColor, setNewCategoryColor] = useState('#999');
 
+const [colorPickerState, setColorPickerState] = useState({
+  visible: false, // モーダルの表示状態
+  targetIndex: null, // null → 新規カテゴリ / 数値 → 編集対象のカテゴリインデックス
+});
+
+// 色選択モーダルを開く関数
+const openColorPicker = (index = null) => {
+  setColorPickerState({ visible: true, targetIndex: index });
+};
+
+// 色選択モーダルを閉じる関数
+const closeColorPicker = () => {
+  setColorPickerState({ visible: false, targetIndex: null });
+};
+
+// 現在選択されている色を取得
+const getCurrentSelectedColor = () => {
+  if (colorPickerState.targetIndex === null) {
+    return newCategoryColor; // 新規カテゴリの色
+  }
+  return categories[colorPickerState.targetIndex]?.color || '#999'; // 既存カテゴリの色
+};
+
+// 色を更新する関数
+const handleColorSelect = (color) => {
+  if (colorPickerState.targetIndex === null) {
+    // 新規カテゴリの色を設定
+    setNewCategoryColor(color);
+  } else {
+    // 既存カテゴリの色を更新
+    updateCategoryColor(colorPickerState.targetIndex, color);
+  }
+  closeColorPicker();
+};
+
 
 const addNewCategory = () => {
   if (!newCategoryName.trim()) return;
@@ -43,7 +78,6 @@ const updateCategoryColor = (index, newColor) => {
     updated[index].color = newColor;
     return updated;
   });
-  setEditingCategoryIndex(null);
 };
 
 
@@ -76,9 +110,7 @@ const updateCategoryColor = (index, newColor) => {
   };
 
 
-
-
-  return (
+  return (  //UIを返すHTML
     <View style={styles.container}>
       <Text style={styles.timer}>{time} 秒</Text>
 
@@ -122,12 +154,14 @@ const updateCategoryColor = (index, newColor) => {
         >
           <Text style={{ color: '#fff' }}>{cat.name}</Text>
         </Pressable>
-        <Pressable
-          style={styles.editColorButton}
-          onPress={() => editCategoryColor(i)}
-        >
-          <Text>🎨</Text>
-        </Pressable>
+        {/* 既存カテゴリの色編集 */}
+<Pressable
+  style={styles.editColorButton}
+  onPress={() => openColorPicker(i)} // 既存カテゴリのインデックス
+>
+  <Text>🎨</Text>
+</Pressable>
+
       </View>
     ))}
 
@@ -141,10 +175,11 @@ const updateCategoryColor = (index, newColor) => {
           value={newCategoryName}
           onChangeText={setNewCategoryName}
         />
-        <Pressable
-          style={[styles.colorPreview, { backgroundColor: newCategoryColor }]}
-         
-        />
+        {/* 新規カテゴリの色選択 */}
+<Pressable
+  style={[styles.colorPreview, { backgroundColor: newCategoryColor }]}
+  onPress={() => openColorPicker(null)} // 新規カテゴリ
+/>
         <Button title="追加" onPress={addNewCategory} />
       </View>
 
@@ -156,25 +191,36 @@ const updateCategoryColor = (index, newColor) => {
 
     <Button title="閉じる" onPress={() => setCategoryModalVisible(false)} />
   </View>
-  <View style={styles.colorPickerRow}>
-  {['#ff6666', '#66ccff', '#99cc33', '#ffcc66', '#99ff99'].map((color) => (
-    <Pressable
-      key={color}
-      style={[
-        styles.colorCircle,
-        {
-          backgroundColor: color,
-          borderWidth: newCategoryColor === color ? 3 : 1,
-          borderColor: newCategoryColor === color ? '#000' : '#ccc',
-        },
-      ]}
-      onPress={() => setNewCategoryColor(color)}
-    />
-  ))}
-</View>
+  
 
 </RNModal>
-
+{/* === 色選択モーダル === */}
+<RNModal
+  isVisible={colorPickerState.visible}
+  onBackdropPress={closeColorPicker}
+  style={styles.modal}
+>
+  <View style={styles.modalContent}>
+    <Text style={styles.modalTitle}>色を選択</Text>
+    <View style={styles.colorPickerRow}>
+      {['#ff6666', '#66ccff', '#99cc33', '#ffcc66', '#99ff99', '#cc99ff', '#ffaaff'].map((color) => (
+        <Pressable
+          key={color}
+          style={[
+            styles.colorCircle,
+            {
+              backgroundColor: color,
+              borderWidth: getCurrentSelectedColor() === color ? 3 : 1,
+              borderColor: getCurrentSelectedColor() === color ? '#000' : '#ccc',
+            },
+          ]}
+          onPress={() => handleColorSelect(color)}
+        />
+      ))}
+    </View>
+    <Button title="キャンセル" onPress={closeColorPicker} />
+  </View>
+</RNModal>
     </View>
   );
 };
@@ -259,6 +305,28 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
   },
+
+  colorPickerRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'center',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  colorCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  colorPreview: {
+    width: 30,
+    height: 30,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#aaa',
+  },
+  
   
   
 });
