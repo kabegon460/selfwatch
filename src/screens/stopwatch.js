@@ -92,7 +92,11 @@ const updateCategoryColor = (index, newColor) => {
   };
 
   const handleLap = () => {
-    setLaps(prev => [{ time, category: null }, ...prev]);
+    setLaps((prev) => {
+      const lastLapTime = prev.length > 0 ? prev[0].time : 0; // 前のラップの時間
+      const lapTime = time - lastLapTime; // 区間時間を計算
+      return [{ time, lapTime, category: null }, ...prev]; // 区間時間を保存
+    });
   };
 
   const openCategoryModal = (index) => {
@@ -132,7 +136,9 @@ const formatTime = (seconds) => {
         keyExtractor={(_, index) => index.toString()}
         renderItem={({ item, index }) => (
           <View style={styles.lapItem}>
-            <Text style={styles.lapText}>ラップ {laps.length - index}: {item.time} 秒</Text>
+            <Text style={styles.lapText}>
+              ラップ {laps.length - index} {formatTime(item.lapTime)} 
+            </Text>
             <Pressable
               style={[styles.categoryButton, { backgroundColor: item.category?.color || '#eee' }]}
               onPress={() => openCategoryModal(index)}
