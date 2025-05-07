@@ -109,10 +109,18 @@ const updateCategoryColor = (index, newColor) => {
     setCategoryModalVisible(false);
   };
 
+  // 秒数を00:00:00形式に変換する関数
+const formatTime = (seconds) => {
+  const hrs = Math.floor(seconds / 3600).toString().padStart(2, '0');
+  const mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+  const secs = (seconds % 60).toString().padStart(2, '0');
+  return `${hrs}:${mins}:${secs}`;
+};
 
   return (  //UIを返すHTML
     <View style={styles.container}>
-      <Text style={styles.timer}>{time} 秒</Text>
+      {/* フォーマットされた時間を表示 */}
+      <Text style={styles.timer}>{formatTime(time)}</Text>
 
       <View style={styles.buttonRow}>
         <Button title={running ? 'ストップ' : 'スタート'} onPress={running ? stop : start} />
